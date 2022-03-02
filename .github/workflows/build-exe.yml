@@ -7,7 +7,10 @@ on:
 
 jobs:
   Windows-Build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
     steps:
       - name: Setup python 3.10
         uses: actions/setup-python@v2
@@ -31,10 +34,27 @@ jobs:
           --assume-yes-for-downloads `
           setup.py
       - name: Rename the executable
-        run: Rename-Item setup.dist/setup.exe gt2_discs_combiner.exe
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            mv setup.dist/setup setup.dist/gt2_discs_combiner
+          elif [ "$RUNNER_OS" == "Windows" ]; then 
+            Rename-Item setup.dist/setup.exe gt2_discs_combiner.exe
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+        shell: bash
       - name: Package the build into a zip file
-        run: tar -c -f gt2_discs_combiner_${{ github.ref_name }}.zip -C setup.dist *
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            zip -r gt2_discs_combiner_${{ github.ref_name }}_${{ matrix.os }}.zip setup.dist
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            tar -c -f gt2_discs_combiner_${{ github.ref_name }}_${{ matrix.os }}.zip -C setup.dist *
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: gt2_discs_combiner_${{ github.ref_name }}.zip
+          files: gt2_discs_combiner_${{ github.ref_name }}_${{ matrix.os }}.zip
