@@ -1,4 +1,4 @@
-name: Build an executable using pyinstaller
+name: Build executables
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           --assume-yes-for-downloads `
           setup.py
       - name: Rename the executable
-        run: Rename-Item setup.dist/setup.exe gt2_discs_combiner_${{ github.ref_name }}.exe
+        run: Rename-Item setup.dist/setup.exe gt2_discs_combiner.exe
       - name: Package the build into a zip file
         run: tar -c -f gt2_discs_combiner_${{ github.ref_name }}.zip -C setup.dist *
       - name: Release
