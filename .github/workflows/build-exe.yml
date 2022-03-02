@@ -1,0 +1,40 @@
+name: Build an executable using pyinstaller
+
+on:
+  push:
+    tags:
+      - "**"
+
+jobs:
+  Windows-Build:
+    runs-on: windows-latest
+    steps:
+      - name: Setup python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Checkout this repo's source code
+        uses: actions/checkout@v2
+      - name: Checkout the GTModTools repo
+        uses: actions/checkout@v2
+        with:
+          repository: CookiePLMonster/GTModTools
+          path: gttools
+      - name: Install nuitka
+        run: pip install Nuitka==0.7.2
+      - name: Compile into an executable
+        run: python -m nuitka --standalone `
+          --include-data-dir=menu_entries=menu_entries `
+          --include-data-dir=tools=tools `
+          --include-data-dir=vol_replacements=vol_replacements `
+          --enable-plugin=tk-inter `
+          --assume-yes-for-downloads `
+          setup.py
+      - name: Rename the executable
+        run: Rename-Item setup.dist/setup.exe gt2_discs_combiner_${{ github.ref_name }}.exe
+      - name: Package the build into a zip file
+        run: tar -c -f gt2_discs_combiner_${{ github.ref_name }}.zip -C setup.dist *
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gt2_discs_combiner_${{ github.ref_name }}.zip

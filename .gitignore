@@ -1,1 +1,9 @@
 /.vscode/
+
+# Python
+__pycache__
+.mypy_cache
+
+# Nuitka build artifacts
+*.build
+*.dist
